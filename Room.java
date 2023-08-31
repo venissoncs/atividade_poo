@@ -1,25 +1,26 @@
 /**
- * Class Room - a room in an adventure game.
- *
- * This class is part of the "World of Zuul" application. 
- * "World of Zuul" is a very simple, text based adventure game.  
- *
- * A "Room" represents one location in the scenery of the game.  It is 
- * connected to other rooms via exits.  The exits are labelled north, 
- * east, south, west.  For each direction, the room stores a reference
- * to the neighboring room, or null if there is no exit in that direction.
- * 
- * @author  Michael Kölling and David J. Barnes
- * @version 2016.02.29
+ * Aluno: Vênisson Cardoso dos Santos – 201700063182
+ * Aluno: Swyann Vitor Rodrigues dos Santos - 202100045831
  */
+import java.util.HashMap;
+import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
+
 public class Room 
 {
-    public String description;
-    public Room northExit;
-    public Room southExit;
-    public Room eastExit;
-    public Room westExit;
+    private String description;
+    private HashMap<String, Room> exits;
+    private Item item;
+    private List<Item> items;
 
+    public void setItem(Item item) {
+        this.item = item;
+    }
+
+    public Item getItem(){
+        return item;
+    }
     /**
      * Create a room described "description". Initially, it has
      * no exits. "description" is something like "a kitchen" or
@@ -29,6 +30,8 @@ public class Room
     public Room(String description) 
     {
         this.description = description;
+        exits = new HashMap<>();
+        items = new ArrayList<>();
     }
 
     /**
@@ -39,20 +42,36 @@ public class Room
      * @param south The south exit.
      * @param west The west exit.
      */
-    public void setExits(Room north, Room east, Room south, Room west) 
+    public void setExit(String direction, Room neighbor) 
     {
-        if(north != null) {
-            northExit = north;
+            exits.put(direction, neighbor);
+    }
+
+    public Room getExit(String direction)
+    {
+        return exits.get(direction);
+    }
+
+    public String getExitString(){
+        String exitString = "Exits:";
+        Set<String> keys = exits.keySet();
+        for(String exit: keys) {
+            exitString += " " + exit;
         }
-        if(east != null) {
-            eastExit = east;
+           
+        return exitString;
+    }
+
+    public void addItem(Item item){
+        items.add(item);
+    }
+
+    public String getItemDescription() {
+        String itemDescription = "Items:";
+        for (Item item : items) {
+            itemDescription += " " + item.getDescription();
         }
-        if(south != null) {
-            southExit = south;
-        }
-        if(west != null) {
-            westExit = west;
-        }
+        return itemDescription;
     }
 
     /**
@@ -63,4 +82,8 @@ public class Room
         return description;
     }
 
+    public String getLongDescription()
+    {
+        return "You are " + description + ".\n" + getExitString() + "\n" + getItemDescription();
+    }
 }
