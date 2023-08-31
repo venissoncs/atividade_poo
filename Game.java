@@ -8,6 +8,7 @@ public class Game
 {
     private Parser parser;
     private Room currentRoom;
+    private Room lastRoom;
         
     /**
      * Create the game and initialise its internal map.
@@ -23,7 +24,8 @@ public class Game
      */
     private void createRooms()
     {
-        Room outside, theater, pub, lab, office;
+        Room outside, theater, pub, lab, office, cellar;
+
       
         // create the rooms
         outside = new Room("outside the main entrance of the university");
@@ -31,15 +33,39 @@ public class Game
         pub = new Room("in the campus pub");
         lab = new Room("in a computing lab");
         office = new Room("in the computing admin office");
-        
+        cellar = new Room("in the cellar");
         // initialise room exits
-        outside.setExits(null, theater, lab, pub);
-        theater.setExits(null, null, null, outside);
-        pub.setExits(null, outside, null, null);
-        lab.setExits(outside, office, null, null);
-        office.setExits(null, null, null, lab);
+        outside.setExit("east", theater);
+        outside.setExit("south", lab);
+        outside.setExit("west", pub);
+
+        theater.setExit("west", outside);
+
+        pub.setExit("east", outside);
+
+        lab.setExit("north", outside);
+        lab.setExit("east", office);
+    
+        office.setExit("west", lab);
+        office.setExit("down", cellar);
+
+        cellar.setExit("up", office);
 
         currentRoom = outside;  // start game outside
+
+        Item Cracha = new Item("Um cartão de acesso a portas.", 0.05);
+        Item Guarda_Chuva = new Item("Um guarda-chuva vermelho com listras brancas", 1);
+        Item Roteiro = new Item("Um bloco de papel com o roteiro da peça", 0.1);
+        Item Caneca = new Item("Uma caneca de café vazia", 0.2);
+        Item Laterna = new Item("Uma laterna com a bateria fraca", 0.3);
+        
+        office.setItem(Cracha);
+        outside.setItem(Guarda_Chuva);
+        theater.setItem(Roteiro);
+        pub.setItem(Caneca);
+        cellar.setItem(Laterna);
+
+        
     }
 
     /**
@@ -66,17 +92,18 @@ public class Game
     private void printLocationInfo()
     {
         System.out.println("You are " + currentRoom.getDescription());
+        System.out.println(currentRoom.getItemDescription());
         System.out.println("Exits: ");
-        if(currentRoom.northExit != null){
+        if(currentRoom.getExit("north") != null){
             System.out.println("north ");
         }
-        if(currentRoom.eastExit != null) {
+        if(currentRoom.getExit("east") != null) {
             System.out.println("east ");
         }
-        if(currentRoom.southExit != null) {
+        if(currentRoom.getExit("south") != null) {
             System.out.println("south ");
         }
-        if(currentRoom.westExit != null){
+        if(currentRoom.getExit("west") != null){
             System.out.println("west ");
         }
         System.out.println();
@@ -87,6 +114,7 @@ public class Game
         System.out.println("Welcome to the World of Zuul!");
         System.out.println("World of Zuul is a new, incredibly boring adventure game.");
         System.out.println("Type 'help' if you need help.");
+        System.out.println(currentRoom.getLongDescription());
         System.out.println();
         printLocationInfo();
     }
@@ -112,6 +140,15 @@ public class Game
         else if (commandWord.equals("go")) {
             goRoom(command);
         }
+        else if(commandWord.equals("back")) {
+            goBack();
+        }
+        else if(commandWord.equals("look")) {
+            look();
+        }
+        else if (commandWord.equals("eat")) {
+            eat();
+        }
         else if (commandWord.equals("quit")) {
             wantToQuit = quit(command);
         }
@@ -131,7 +168,7 @@ public class Game
         System.out.println("You are lost. You are alone. You wander");
         System.out.println("around at the university.");
         System.out.println();
-        System.out.println("Your command words are:");
+        parser.showCommands();
         System.out.println("   go quit help");
     }
 
@@ -139,6 +176,15 @@ public class Game
      * Try to go in one direction. If there is an exit, enter
      * the new room, otherwise print an error message.
      */
+    private void goBack(){
+        if(lastRoom != null) {
+            currentRoom = lastRoom;
+            printLocationInfo();
+        } else {
+            System.out.println("You haven't been anywhere yet.");
+        }
+
+    }
     private void goRoom(Command command) 
     {
         if(!command.hasSecondWord()) {
@@ -148,30 +194,29 @@ public class Game
         }
 
         String direction = command.getSecondWord();
+        lastRoom = currentRoom;
 
         // Try to leave current room.
-        Room nextRoom = null;
-        if(direction.equals("north")) {
-            nextRoom = currentRoom.northExit;
-        }
-        if(direction.equals("east")) {
-            nextRoom = currentRoom.eastExit;
-        }
-        if(direction.equals("south")) {
-            nextRoom = currentRoom.southExit;
-        }
-        if(direction.equals("west")) {
-            nextRoom = currentRoom.westExit;
-        }
-
+        Room nextRoom = currentRoom.getExit(direction);
         if (nextRoom == null) {
             System.out.println("There is no door!");
-        }
-        else {
+        } else {
+            lastRoom = currentRoom; // Atualiza a última sala visitada antes de mudar de sala
             currentRoom = nextRoom;
             printLocationInfo();
         }
     }
+
+    private void look()
+    {
+        System.out.println(currentRoom.getLongDescription());
+    }
+
+    private void eat(){
+        System.out.println("You have eaten now and you are not hungry any more");
+    }
+
+
 
     /** 
      * "Quit" was entered. Check the rest of the command to see
